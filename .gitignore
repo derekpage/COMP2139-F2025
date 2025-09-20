@@ -3,5 +3,5 @@
 *.sln.iml
 
 # Build results
-bin/
-obj/
+COMP2139-ICE/bin/
+COMP2139-ICE/obj/
