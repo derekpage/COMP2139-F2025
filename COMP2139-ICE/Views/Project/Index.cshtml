@@ -6,6 +6,7 @@
 
 <h2>Projects</h2>
 
+<a asp-action="Create" class="btn btn-primary">Create New Project</a>
 @if (Model.Any())  // to determine if there are any projects to display
 {
 <table class="table">
@@ -14,6 +15,7 @@
         <th>ID</th>
         <th>Name</th>
         <th>Description</th>
+        <th>Action</th>
         <!-- Add other project properties as needed -->
     </tr>
     </thead>
@@ -25,6 +27,10 @@
             <td>@project.ProjectId</td>
             <td>@project.Name</td>
             <td>@project.Description</td>
+            <td>
+                <a asp-action="Details" asp-route-id="@project.ProjectId" class="btn btn-info">Details</a>
+                <a asp-action="Delete" asp-route-id="@project.ProjectId" class="btn btn-danger">Delete</a>
+            </td>
             <!-- Render other project properties as needed -->
         </tr>
     }
