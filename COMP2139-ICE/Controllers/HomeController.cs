@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using COMP2139_ICE.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace COMP2139_ICE.Controllers;
 
@@ -17,7 +17,7 @@ public class HomeController : Controller
     {
         return View();
     }
-    
+
     public IActionResult About()
     {
         return View();

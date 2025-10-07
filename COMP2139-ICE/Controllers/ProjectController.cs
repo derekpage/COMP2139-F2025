@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using COMP2139_ICE.Data;
 using COMP2139_ICE.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -39,12 +40,21 @@ public class ProjectController : Controller
     {
         if (ModelState.IsValid)
         {
+            project.StartDate = ToUtc(project.StartDate);
+            project.EndDate = ToUtc(project.EndDate);
             _context.Projects.Add(project);
             _context.SaveChanges();
             return RedirectToAction("Index");
         }
 
         return View(project);
+    }
+
+    private DateTime ToUtc(DateTime input)
+    {
+        if (input.Kind == DateTimeKind.Utc) return input;
+        if (input.Kind == DateTimeKind.Unspecified) return DateTime.SpecifyKind(input, DateTimeKind.Utc);
+        return input.ToUniversalTime();
     }
 
     [HttpGet]
@@ -105,7 +115,8 @@ public class ProjectController : Controller
         return View(project);
     }
 
-    [HttpPost, ActionName("DeleteConfirmed")]
+    [HttpPost]
+    [ActionName("DeleteConfirmed")]
     [ValidateAntiForgeryToken]
     public IActionResult DeleteConfirmed(int id)
     {
