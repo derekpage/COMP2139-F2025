@@ -42,4 +42,6 @@ public class Project
     ///     - Nullable: Allows this property to have a null value if the status is unknown.
     /// </summary>
     public string? Status { get; set; }
+
+    public List<ProjectTask>? Tasks { get; set; } = new();
 }

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace COMP2139_ICE.Controllers;
 
+[Route("ProjectTask")]
 public class ProjectTaskController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -15,7 +16,7 @@ public class ProjectTaskController : Controller
         _context = context;
     }
 
-    [HttpGet]
+    [HttpGet("Index/{projectId:int}")]
     public IActionResult Index(int projectId)
     {
         var tasks = _context.ProjectTasks
@@ -25,7 +26,7 @@ public class ProjectTaskController : Controller
         return View(tasks);
     }
 
-    [HttpGet]
+    [HttpGet("Detail/{id:int}")]
     public IActionResult Details(int id)
     {
         var task = _context.ProjectTasks
@@ -35,7 +36,7 @@ public class ProjectTaskController : Controller
         return View(task);
     }
 
-    [HttpGet]
+    [HttpGet("Create/{projectId:int}")]
     public IActionResult Create(int projectId)
     {
         var project = _context.Projects.Find(projectId);
@@ -49,7 +50,7 @@ public class ProjectTaskController : Controller
         return View(task);
     }
 
-    [HttpPost]
+    [HttpPost("Create/{projectId:int}")]
     [ValidateAntiForgeryToken]
     public IActionResult Create([Bind("Title", "Description", "ProjectId")] ProjectTask task)
     {
@@ -64,7 +65,7 @@ public class ProjectTaskController : Controller
         return View(task);
     }
 
-    [HttpGet]
+    [HttpGet("Edit/{id:int}")]
     public IActionResult Edit(int id)
     {
         var task = _context.ProjectTasks
@@ -75,7 +76,7 @@ public class ProjectTaskController : Controller
         return View(task);
     }
 
-    [HttpPost]
+    [HttpPost("Edit/{id:int}")]
     [ValidateAntiForgeryToken]
     public IActionResult Edit(int id, [Bind("ProjectTaskId", "Title", "Description", "ProjectId")] ProjectTask task)
     {
@@ -91,7 +92,7 @@ public class ProjectTaskController : Controller
         return View(task);
     }
 
-    [HttpGet]
+    [HttpGet("Delete/{id:int}")]
     public IActionResult Delete(int id)
     {
         var task = _context.ProjectTasks
@@ -101,8 +102,7 @@ public class ProjectTaskController : Controller
         return View(task);
     }
 
-    [HttpPost]
-    [ActionName("DeleteConfirmed")]
+    [HttpPost("DeleteConfirmed/{projectTaskId:int}")]
     [ValidateAntiForgeryToken]
     public IActionResult DeleteConfirmed(int projectTaskId)
     {
@@ -115,5 +115,45 @@ public class ProjectTaskController : Controller
         }
 
         return NotFound();
+    }
+    [HttpGet("Search")]
+    public async Task<IActionResult> Search(int? projectId, string searchString)
+    {
+        // Start with all tasks as an IQueryable query (deferred execution)
+        var taskQuery = _context.ProjectTasks.AsQueryable();
+
+        // Track whether a search was performed
+        bool searchPerformed = !string.IsNullOrWhiteSpace(searchString);
+
+        // If a projectId is provided, filter by project
+        if (projectId.HasValue)
+        {
+            taskQuery = taskQuery.Where(t => t.ProjectId == projectId.Value);
+        }
+
+        // ❗ FIXED: Apply search filter when searchString is provided
+        if (searchPerformed)
+        {
+            searchString = searchString.ToLower(); // Case-insensitive search
+
+            // Ensure null-safe search on nullable Description
+            taskQuery = taskQuery.Where(t =>
+                t.Title.ToLower().Contains(searchString) ||
+                (t.Description != null && t.Description.ToLower().Contains(searchString))
+            );
+        }
+
+        // ❗ WHY ASYNC? ❗
+        // The database query is executed asynchronously using `ToListAsync()`
+        // This prevents blocking the main thread while waiting for the result.
+        var tasks = await taskQuery.ToListAsync();
+
+        // Pass search metadata to the view for UI updates
+        ViewBag.ProjectId = projectId;
+        ViewData["SearchPerformed"] = searchPerformed;
+        ViewData["SearchString"] = searchString;
+
+        // Reuse Index view to display filtered results
+        return View("Index", tasks);
     }
 }
